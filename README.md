@@ -33,7 +33,40 @@ development reloads. Do not use that shared pool in serverless request handlers.
 Standalone scripts that use it directly must call `await db.$client.end()` when
 finished. No connection is opened merely by constructing a pool.
 
-Table definitions and migrations will be added in the next database layer.
+Table definitions are in `src/db/schema/`. Use `pnpm db:generate` to generate
+migrations from schema changes, review the SQL in `drizzle/`, then apply it
+to the configured database using `pnpm db:migrate`.
+
+## Repositories
+
+`src/db/repositories/` contains server-only factories for contacts and inquiries.
+Pass a database client or transaction; repositories do not open connections.
+
+```ts
+import { withDb } from "@/db";
+import { createContactsRepository } from "@/db/repositories/contacts.repository";
+
+const contact = await withDb((database) =>
+  createContactsRepository(database).findByEmail("sara@example.com"),
+);
+```
+
+Contact operations are `findByEmail`, `findById`, and `upsertByEmail`.
+Callers must supply normalized emails and validated inputs. Upserts preserve
+the original ID and creation time; omitted country preserves the saved value,
+while explicit `null` clears it.
+
+Inquiry operations are `create`, `findBySubmissionKey`, and `findByContactId`.
+History is ordered by submission time descending, with ID as a tie-breaker.
+`create` returns `null` for an existing submission key and propagates other
+database errors. The service must handle duplicate submissions, check their
+identity, and roll back any surrounding contact changes when necessary.
+For atomic submissions, create both repositories using the same transaction.
+
+Run `pnpm db:check-repositories` against development Neon to check upserts,
+lookups, country preservation, duplicate submissions, inquiry history,
+foreign-key failure propagation, and rollback. All test writes are rolled back,
+and the script verifies that no test records remain afterward.
 
 ## Getting Started
 
