@@ -129,6 +129,7 @@
   }
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
   }
 }
 @theme {
@@ -160,3 +161,4 @@
     scroll-behavior: auto !important;
   }
 }
+
