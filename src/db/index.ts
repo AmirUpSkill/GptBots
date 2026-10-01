@@ -4,6 +4,8 @@ import { neonConfig, Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import WebSocket from "ws";
 
+import * as schema from "./schema";
+
 neonConfig.webSocketConstructor = WebSocket;
 
 function getConnectionString(): string {
@@ -43,7 +45,7 @@ export function createDatabase() {
     console.error("An idle database connection failed.");
   });
 
-  return drizzle({ client: pool });
+  return drizzle({ client: pool, schema });
 }
 
 export type Database = ReturnType<typeof createDatabase>;
