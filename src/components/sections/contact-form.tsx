@@ -56,7 +56,12 @@ export function ContactForm() {
 
   function focusInvalidField() {
     requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+      const flagged = formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]');
+      if (!flagged) return;
+      const target = flagged.matches("input, textarea, select, button, [tabindex]")
+        ? flagged
+        : flagged.querySelector<HTMLElement>("input, textarea, select");
+      target?.focus();
     });
   }
 
@@ -185,7 +190,7 @@ export function ContactForm() {
 
         <div className="space-y-2">
           <p id="contact-inquiryType-label" className="text-sm leading-none font-medium">What can we help you with?</p>
-          <div role="radiogroup" aria-labelledby="contact-inquiryType-label" aria-describedby={inquiryInvalid ? "contact-inquiryType-error" : undefined} className="flex flex-wrap gap-2">
+          <div role="radiogroup" aria-labelledby="contact-inquiryType-label" aria-describedby={inquiryInvalid ? "contact-inquiryType-error" : undefined} aria-invalid={inquiryInvalid || undefined} className="flex flex-wrap gap-2">
             {inquiryItems.map((item) => {
               const selected = fields.inquiryType === item.value;
               return (
@@ -193,7 +198,6 @@ export function ContactForm() {
                   <input
                     type="radio" name="inquiryType" value={item.value} required
                     checked={selected} onChange={() => updateField("inquiryType", item.value)}
-                    aria-invalid={inquiryInvalid || undefined}
                     className="peer sr-only"
                   />
                   <span className={`inline-flex h-9 items-center rounded-full border px-4 text-sm transition-colors peer-focus-visible:ring-3 peer-focus-visible:ring-ring/50 peer-disabled:cursor-not-allowed peer-disabled:opacity-60 ${selected ? "border-primary bg-primary text-primary-foreground" : "border-border text-muted-foreground hover:border-input hover:bg-muted"}`}>
