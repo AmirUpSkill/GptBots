@@ -8,8 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const navItems = [
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#use-cases", label: "Use cases" },
   { href: "#contact", label: "Contact" },
 ];
 const linkStyle = "rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -80,3 +78,4 @@ export function SiteHeader() {
     </>
   );
 }
+
