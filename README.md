@@ -68,6 +68,44 @@ lookups, country preservation, duplicate submissions, inquiry history,
 foreign-key failure propagation, and rollback. All test writes are rolled back,
 and the script verifies that no test records remain afterward.
 
+## Contact submission service
+
+`src/services/contact-submission.service.ts` exports `submitContactInquiry`.
+Validate unknown input with the DTO first, then call the service from server
+code running in the Node.js runtime:
+
+```ts
+import { contactSubmissionSchema } from "@/dto/contact-submission.dto";
+import { submitContactInquiry } from "@/services/contact-submission.service";
+
+const parsed = contactSubmissionSchema.safeParse(payload);
+if (!parsed.success) {
+  // Return validation errors from the API; do not call the service.
+  throw parsed.error;
+}
+const result = await submitContactInquiry(parsed.data);
+```
+
+The service opens a request-scoped connection and atomically upserts the
+contact and inserts the inquiry. It returns `contactId`, `inquiryId`,
+`submittedAt`, and `reused`. Valid retries return the saved inquiry without
+updating contact details. Retry identity matches email, inquiry type, and
+message; it does not compare mutable names or organization. Conflicting
+keys raise `SubmissionConflictError` from `src/services/errors.ts`.
+Other database failures propagate for the API to handle.
+
+Concurrent duplicate inserts roll back the losing transaction before reading
+and validating the winning inquiry. No losing contact updates are committed.
+`createContactSubmissionService(database)` supports composition and tests;
+callers own connection lifetime and must use READ COMMITTED isolation when
+passing an outer transaction.
+
+Run `pnpm db:check-services` against development Neon. It checks new inquiries,
+contact reuse, country preservation, retries, conflicting keys, failure
+rollback, and real concurrent submissions. Ordinary fixtures roll back;
+concurrency fixtures commit briefly and are deleted in `finally`. The script
+verifies no test contacts or inquiries remain afterward.
+
 ## Getting Started
 
 ### Contact submission validation
