@@ -1,5 +1,40 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Database connection
+
+Copy `.env.example` to `.env.local` and set `DATABASE_URL` to your Neon
+PostgreSQL connection URL. Paste only the URL, without `psql` or shell quotes.
+Use the development branch's pooled URL. `.env.local` stays ignored by Git.
+On deployment, configure the variable through your hosting provider.
+
+Run `pnpm db:check` to verify the connection and an interactive transaction.
+The check only runs `SELECT 1`; it does not create tables or write records.
+The command enables Node's `react-server` condition so the standalone script
+can import the same `server-only` database module used by Next.js.
+
+`src/db/index.ts` uses Drizzle's `neon-serverless` adapter and Neon WebSockets.
+It requires the Node.js runtime, not Edge. For API routes, explicitly export
+`const runtime = "nodejs"` and keep all database work inside `withDb`:
+
+```ts
+import { withDb } from "@/db";
+import { sql } from "drizzle-orm";
+
+const result = await withDb((database) => database.execute(sql`SELECT 1`));
+```
+
+`withDb` creates a pool for the operation and closes it in `finally`, including
+when queries fail. Await all work inside its callback; do not return the client
+or start background database work there. This keeps WebSocket connections
+within the request lifetime in serverless deployments.
+
+The exported `db` is for long-lived Node processes and is cached across
+development reloads. Do not use that shared pool in serverless request handlers.
+Standalone scripts that use it directly must call `await db.$client.end()` when
+finished. No connection is opened merely by constructing a pool.
+
+Table definitions and migrations will be added in the next database layer.
+
 ## Getting Started
 
 First, run the development server:
