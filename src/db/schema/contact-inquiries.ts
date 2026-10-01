@@ -13,8 +13,7 @@ export const contactInquiries = pgTable(
       .references(() => contacts.id, { onDelete: "restrict" }),
     inquiryType: inquiryTypeEnum("inquiry_type").notNull(),
     message: text("message").notNull(),
-
-    // Reuse the caller's key on retries; generate a new key for a new inquiry.
+    
     submissionKey: uuid("submission_key").notNull().unique(),
 
     submittedAt: timestamp("submitted_at", {
