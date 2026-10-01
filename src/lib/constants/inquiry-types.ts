@@ -1,4 +1,4 @@
-// Shared by browser validation and the PostgreSQL enum without DB imports.
+// --- Build a Share browser <-> PostgreSQL Enum layer --
 export const INQUIRY_TYPES = [
   "demo_request",
   "pricing",
