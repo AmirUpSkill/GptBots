@@ -70,6 +70,25 @@ and the script verifies that no test records remain afterward.
 
 ## Getting Started
 
+### Contact submission validation
+
+`src/dto/contact-submission.dto.ts` exports a browser-safe Zod schema and
+inferred input/output types. Call `contactSubmissionSchema.safeParse(payload)`
+on incoming unknown JSON and pass only `result.data` to the service after
+checking `result.success`. Use `z.flattenError(result.error)` to collect field
+and form errors on failure. Unknown properties are rejected.
+
+The DTO requires first name, last name, email, organization, inquiry type,
+message, and a UUID submission key. Text is trimmed, email is lowercased, and
+message line breaks are preserved. Length limits are 100 for each name, 254
+for email, 200 for organization, and 5,000 for message. Country and
+database-managed fields are excluded from this form's public contract.
+
+Inquiry values are defined once in `src/lib/constants/inquiry-types.ts` and
+used by both Zod and the PostgreSQL enum. Reuse the same submission key for
+retries; service-layer handling and database uniqueness provide idempotency.
+Run `pnpm test:dto` for validation tests; no database connection is needed.
+
 First, run the development server:
 
 ```bash
