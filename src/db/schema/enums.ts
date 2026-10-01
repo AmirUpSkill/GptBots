@@ -1,10 +1,7 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const inquiryTypeEnum = pgEnum("inquiry_type", [
-  "demo_request",
-  "pricing",
-  "product_question",
-  "partnership",
-]);
+import { INQUIRY_TYPES } from "../../lib/constants/inquiry-types";
 
-export type InquiryType = (typeof inquiryTypeEnum.enumValues)[number];
+export const inquiryTypeEnum = pgEnum("inquiry_type", INQUIRY_TYPES);
+
+export type { InquiryType } from "../../lib/constants/inquiry-types";
